@@ -1,6 +1,7 @@
 mod day01;
 mod day02;
 mod day03;
+mod day04;
 
 fn main() {
     day01::part_one();
@@ -9,4 +10,5 @@ fn main() {
     day02::part_two();
     day03::part_one();
     day03::part_two();
+    day04::part_one();
 }
