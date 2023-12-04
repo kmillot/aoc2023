@@ -17,7 +17,9 @@ pub fn part_one() {
 pub fn part_two() {
     let mut cards = parse_cards_with_id(INPUT);
     get_all_card_copies(&mut cards);
-    println!("3.2 answer: {}", cards.len());
+    let sum = cards.iter().map(|(_,count,_,_)| count).sum::<u32>();
+
+    println!("3.2 answer: {}", sum);
 }
 
 fn parse_cards_iter(s: &str) -> impl Iterator<Item = (Vec<u8>, Vec<u8>)> + '_ {
@@ -41,10 +43,10 @@ fn parse_cards(s: &str) -> Vec<(Vec<u8>, Vec<u8>)> {
     parse_cards_iter(s).collect()
 }
 
-fn parse_cards_with_id(s: &str) -> Vec<(usize, Vec<u8>, Vec<u8>)> {
+fn parse_cards_with_id(s: &str) -> Vec<(usize, u32, Vec<u8>, Vec<u8>)> {
     parse_cards_iter(s)
         .enumerate()
-        .map(|(key, cards)| (key + 1, cards.0, cards.1))
+        .map(|(key, cards)| (key + 1, 1, cards.0, cards.1))
         .collect()
 }
 
@@ -56,19 +58,20 @@ fn get_won_numbers(winning_numbers: &[u8], numbers: &[u8]) -> Vec<u8> {
         .collect::<Vec<u8>>()
 }
 
-fn get_all_card_copies(cards: &mut Vec<(usize, Vec<u8>, Vec<u8>)>) {
+fn get_all_card_copies(cards: &mut Vec<(usize, u32, Vec<u8>, Vec<u8>)>) {
     let mut i = 0;
     let mut len = cards.len();
 
     while i < len {
         let start_id = cards[i].0 + 1;
-        let count = get_won_numbers(cards[i].1.as_slice(), cards[i].2.as_slice()).len();
-        let end_id = start_id + count;
+        let win_count = get_won_numbers(cards[i].2.as_slice(), cards[i].3.as_slice()).len();
+        let end_id = start_id + win_count;
 
-        if count != 0 {
+        if win_count != 0 {
             for j in start_id..end_id {
-                let new_card = cards[j - 1].clone(); // card id starts at 2
-                cards.push(new_card);
+                for _ in 0..cards[i].1 {
+                    cards[j - 1].1 += 1;
+                }
             }
             len = cards.len();
         }
@@ -124,14 +127,15 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
     #[test]
     fn part_two_works() {
         let mut cards = parse_cards_with_id(EXAMPLE);
-
         get_all_card_copies(&mut cards);
-        assert_eq!(cards.iter().filter(|card| card.0 == 1).count(), 1);
-        assert_eq!(cards.iter().filter(|card| card.0 == 2).count(), 2);
-        assert_eq!(cards.iter().filter(|card| card.0 == 3).count(), 4);
-        assert_eq!(cards.iter().filter(|card| card.0 == 4).count(), 8);
-        assert_eq!(cards.iter().filter(|card| card.0 == 5).count(), 14);
-        assert_eq!(cards.iter().filter(|card| card.0 == 6).count(), 1);
-        assert_eq!(cards.len(), 30);
+        let sum = cards.iter().map(|(_,count,_,_)| count).sum::<u32>();
+        
+        assert_eq!(cards[0].1, 1);
+        assert_eq!(cards[1].1, 2);
+        assert_eq!(cards[2].1, 4);
+        assert_eq!(cards[3].1, 8);
+        assert_eq!(cards[4].1, 14);
+        assert_eq!(cards[5].1, 1);
+        assert_eq!(sum, 30);
     }
 }
